@@ -167,12 +167,12 @@ button.submit:disabled{ background:var(--surface2); color:var(--muted); cursor:d
   <div class="card">
 
     <div id="gate">
-      <div class="eyebrow"><span class="dot"></span>Acceso al vivo</div>
-      <h1>Streaming del taller</h1>
-      <p class="lead">Ingresá el código que recibiste al comprar tu entrada. Es personal e intransferible: se activa en el primer dispositivo que lo use.</p>
+      <div class="eyebrow"><span class="dot"></span><span id="t-eyebrow">Acceso al vivo</span></div>
+      <h1 id="t-title">Streaming del taller</h1>
+      <p class="lead" id="t-lead">Ingresá el código que recibiste al comprar tu entrada. Es personal e intransferible: se activa en el primer dispositivo que lo use.</p>
 
       <form id="redeem-form" novalidate>
-        <label for="codigo">Código de acceso</label>
+        <label for="codigo" id="t-label">Código de acceso</label>
         <input
           type="text"
           id="codigo"
@@ -210,8 +210,8 @@ button.submit:disabled{ background:var(--surface2); color:var(--muted); cursor:d
 
   </div>
 
-  <p class="footnote">
-    ¿Problemas con tu código? <a href="https://wa.me/5493571693751?text=Hola%2C%20tengo%20un%20problema%20con%20mi%20c%C3%B3digo%20de%20acceso%20al%20streaming" target="_blank" rel="noopener">Escribinos por WhatsApp</a>
+  <p class="footnote" id="t-footnote">
+    ¿Problemas con tu código? <a href="https://wa.me/5493571693751?text=Hola%2C%20tengo%20un%20problema%20con%20mi%20c%C3%B3digo%20de%20acceso%20al%20streaming" target="_blank" rel="noopener" id="t-wa-link">Escribinos por WhatsApp</a>
   </p>
 
 </div>
@@ -219,6 +219,102 @@ button.submit:disabled{ background:var(--surface2); color:var(--muted); cursor:d
 <script>
 (function () {
   "use strict";
+
+  // ────────────────────────────────────────────────────────────
+  // IDIOMA — mismo mecanismo de detección que usa el router del
+  // microsite (ipapi.co con timeout corto, fallback a navigator.language).
+  // Acá no redirigimos a otra carpeta: la lógica de canje es la misma
+  // para AR/LATAM/EN, solo cambian las palabras en pantalla.
+  // ────────────────────────────────────────────────────────────
+  var STRINGS = {
+    es: {
+      eyebrow: "Acceso al vivo",
+      title: "Streaming del taller",
+      lead: "Ingresá el código que recibiste al comprar tu entrada. Es personal e intransferible: se activa en el primer dispositivo que lo use.",
+      label: "Código de acceso",
+      button: "Ingresar",
+      buttonLoading: "Validando…",
+      footnotePrefix: "¿Problemas con tu código? ",
+      waLinkText: "Escribinos por WhatsApp",
+      waMessage: "Hola, tengo un problema con mi código de acceso al streaming",
+      tierPrefix: "Acceso activo — ",
+      errors: {
+        not_found: "Ese código no existe. Revisá que esté bien escrito, sin espacios.",
+        already_used: "Este código ya está activo en otro dispositivo. Si sos vos, entrá desde el mismo dispositivo que usaste la primera vez.",
+        expired: "Este código no corresponde al día de hoy.",
+        network: "No pudimos conectar para validar el código. Revisá tu conexión e intentá de nuevo.",
+        unknown: "Algo salió mal validando el código. Probá de nuevo en unos segundos.",
+        no_stream: "Tu código es válido, pero no encontramos el stream de este módulo. Escribinos por WhatsApp."
+      },
+      tierLabels: { dia1: "Día 1", dia2: "Día 2", dia3: "Día 3", full: "Pase completo" }
+    },
+    en: {
+      eyebrow: "Live access",
+      title: "Workshop livestream",
+      lead: "Enter the code you received when you bought your ticket. It's personal and non-transferable: it activates on the first device that uses it.",
+      label: "Access code",
+      button: "Enter",
+      buttonLoading: "Checking…",
+      footnotePrefix: "Trouble with your code? ",
+      waLinkText: "Message us on WhatsApp",
+      waMessage: "Hi, I'm having trouble with my streaming access code",
+      tierPrefix: "Access active — ",
+      errors: {
+        not_found: "That code doesn't exist. Check that it's typed correctly, with no spaces.",
+        already_used: "This code is already active on another device. If that's you, log in from the same device you used the first time.",
+        expired: "This code isn't valid for today.",
+        network: "We couldn't connect to validate the code. Check your connection and try again.",
+        unknown: "Something went wrong validating the code. Try again in a few seconds.",
+        no_stream: "Your code is valid, but we couldn't find this module's stream. Message us on WhatsApp."
+      },
+      tierLabels: { dia1: "Day 1", dia2: "Day 2", dia3: "Day 3", full: "Full pass" }
+    }
+  };
+
+  function applyLanguage(langCode) {
+    var t = STRINGS[langCode] || STRINGS.es;
+    document.documentElement.lang = langCode;
+    document.getElementById("t-eyebrow").textContent = t.eyebrow;
+    document.getElementById("t-title").textContent = t.title;
+    document.getElementById("t-lead").textContent = t.lead;
+    document.getElementById("t-label").textContent = t.label;
+    document.getElementById("submit-btn").textContent = t.button;
+    document.getElementById("t-footnote").firstChild.textContent = t.footnotePrefix;
+    var waLink = document.getElementById("t-wa-link");
+    waLink.textContent = t.waLinkText;
+    waLink.href = "https://wa.me/5493571693751?text=" + encodeURIComponent(t.waMessage);
+    window.__vjzotzLang = langCode;
+  }
+
+  function decideByBrowserLanguage() {
+    var lang = (navigator.language || "es").toLowerCase();
+    applyLanguage(lang.indexOf("es") === 0 ? "es" : "en");
+  }
+
+  (function detectLanguage() {
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function () { controller.abort(); }, 2500);
+
+    fetch("https://ipapi.co/json/", { signal: controller.signal })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        clearTimeout(timeoutId);
+        var country = data && data.country_code ? data.country_code.toUpperCase() : null;
+        if (country === "AR" || country === "MX" || country === "CL" || country === "CO" ||
+            country === "PE" || country === "UY" || country === "PY" || country === "BO" ||
+            country === "EC" || country === "VE" || country === "ES") {
+          applyLanguage("es");
+        } else if (country) {
+          applyLanguage("en");
+        } else {
+          decideByBrowserLanguage();
+        }
+      })
+      .catch(function () {
+        clearTimeout(timeoutId);
+        decideByBrowserLanguage();
+      });
+  })();
 
   // ────────────────────────────────────────────────────────────
   // CONFIG — se completa en el próximo paso, cuando esté deployada
@@ -271,33 +367,29 @@ button.submit:disabled{ background:var(--surface2); color:var(--muted); cursor:d
     statusEl.textContent = "";
   }
 
+  function currentStrings() {
+    return STRINGS[window.__vjzotzLang] || STRINGS.es;
+  }
+
   function setLoading(isLoading) {
     submitBtn.disabled = isLoading;
     scanEl.className = isLoading ? "scan show" : "scan";
-    submitBtn.textContent = isLoading ? "Validando…" : "Ingresar";
+    submitBtn.textContent = isLoading ? currentStrings().buttonLoading : currentStrings().button;
   }
 
   function showPlayer(tier) {
     var video = VIMEO_EMBEDS[tier];
+    var t = currentStrings();
     if (!video) {
-      setStatus("error", "Tu código es válido, pero no encontramos el stream de este módulo. Escribinos a vjzotz@gmail.com.");
+      setStatus("error", t.errors.no_stream);
       return;
     }
     gateEl.style.display = "none";
     vimeoFrame.src = "https://player.vimeo.com/video/" + video.id + "?h=" + video.hash + "&autoplay=1&title=0&byline=0&portrait=0";
-    tierBadge.innerHTML = "Acceso activo — <strong>" + video.label + "</strong>";
+    var tierLabel = t.tierLabels[tier] || video.label;
+    tierBadge.innerHTML = t.tierPrefix + "<strong>" + tierLabel + "</strong>";
     playerWrap.className = "player-wrap show";
   }
-
-  // Mensajes de error legibles según lo que devuelva la Cloud Function.
-  // (los códigos de "reason" se definen junto con la función, próximo paso)
-  var ERROR_MESSAGES = {
-    not_found:       "Ese código no existe. Revisá que esté bien escrito, sin espacios.",
-    already_used:    "Este código ya está activo en otro dispositivo. Si sos vos, entrá desde el mismo dispositivo que usaste la primera vez.",
-    expired:         "Este código no corresponde al día de hoy.",
-    network:         "No pudimos conectar para validar el código. Revisá tu conexión e intentá de nuevo.",
-    unknown:         "Algo salió mal validando el código. Probá de nuevo en unos segundos."
-  };
 
   form.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -323,12 +415,13 @@ button.submit:disabled{ background:var(--surface2); color:var(--muted); cursor:d
           showPlayer(result.data.tier);
         } else {
           var reason = (result.data && result.data.reason) || "unknown";
-          setStatus("error", ERROR_MESSAGES[reason] || ERROR_MESSAGES.unknown);
+          var errs = currentStrings().errors;
+          setStatus("error", errs[reason] || errs.unknown);
         }
       })
       .catch(function () {
         setLoading(false);
-        setStatus("error", ERROR_MESSAGES.network);
+        setStatus("error", currentStrings().errors.network);
       });
   });
 
