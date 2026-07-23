@@ -322,6 +322,26 @@ footer{border-top:1px solid var(--line); padding:34px 0; margin-top:20px;}
 @media (prefers-reduced-motion: reduce){
   *{animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important;}
 }
+
+.floating-cta{
+  position:fixed; right:22px; bottom:22px; z-index:500;
+  display:flex; align-items:center; gap:9px;
+  background:var(--cyan); color:#05050a; font-family:'Archivo',sans-serif; font-weight:700; font-size:14px;
+  padding:15px 24px; border-radius:999px; text-decoration:none;
+  box-shadow:0 8px 28px rgba(0,229,255,.35), 0 2px 10px rgba(0,0,0,.35);
+  transition:.2s; animation:floatingCtaPulse 2.6s ease-in-out infinite;
+}
+.floating-cta:hover, .floating-cta:focus-visible{ transform:translateY(-2px); box-shadow:0 12px 34px rgba(0,229,255,.5), 0 2px 10px rgba(0,0,0,.35); }
+.floating-cta .arrow{ font-size:15px; transition:.2s; }
+.floating-cta:hover .arrow{ transform:translateX(3px); }
+@keyframes floatingCtaPulse{
+  0%,100%{ box-shadow:0 8px 28px rgba(0,229,255,.35), 0 2px 10px rgba(0,0,0,.35); }
+  50%{ box-shadow:0 8px 28px rgba(0,229,255,.65), 0 2px 10px rgba(0,0,0,.35); }
+}
+@media (max-width:600px){
+  .floating-cta{ left:16px; right:16px; bottom:16px; justify-content:center; }
+}
+@media (prefers-reduced-motion: reduce){ .floating-cta{ animation:none; } }
 </style>
 </head>
 <body>
@@ -814,6 +834,14 @@ const io = new IntersectionObserver((entries)=>{
 },{threshold:0.15});
 revealEls.forEach(el=>io.observe(el));
 </script>
+
+
+<!-- BOTÓN FLOTANTE DE INSCRIPCIÓN — apunta a #formato como placeholder.
+     ACTUALIZAR href cuando esté el link real de la tiketera. -->
+<a id="floating-cta" class="floating-cta" href="#formato">
+  <span>Reserve your spot</span>
+  <span class="arrow" aria-hidden="true">→</span>
+</a>
 
 </body>
 </html>
