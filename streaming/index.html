@@ -246,7 +246,7 @@ button.submit:disabled{ background:var(--surface2); color:var(--muted); cursor:d
         unknown: "Algo salió mal validando el código. Probá de nuevo en unos segundos.",
         no_stream: "Tu código es válido, pero no encontramos el stream de este módulo. Escribinos por WhatsApp."
       },
-      tierLabels: { dia1: "Día 1", dia2: "Día 2", dia3: "Día 3", full: "Pase completo" }
+      tierLabels: { dia1: "Día 1", dia2: "Día 2", dia3: "Día 3", full: "Pase completo", master: "Acceso maestro" }
     },
     en: {
       eyebrow: "Live access",
@@ -267,7 +267,7 @@ button.submit:disabled{ background:var(--surface2); color:var(--muted); cursor:d
         unknown: "Something went wrong validating the code. Try again in a few seconds.",
         no_stream: "Your code is valid, but we couldn't find this module's stream. Message us on WhatsApp."
       },
-      tierLabels: { dia1: "Day 1", dia2: "Day 2", dia3: "Day 3", full: "Full pass" }
+      tierLabels: { dia1: "Day 1", dia2: "Day 2", dia3: "Day 3", full: "Full pass", master: "Master access" }
     }
   };
 
@@ -320,15 +320,18 @@ button.submit:disabled{ background:var(--surface2); color:var(--muted); cursor:d
   // CONFIG — se completa en el próximo paso, cuando esté deployada
   // la Cloud Function de Firebase.
   // ────────────────────────────────────────────────────────────
-  var CLOUD_FUNCTION_URL = "https://REEMPLAZAR-en-el-proximo-paso.cloudfunctions.net/validarCodigo";
+  var CLOUD_FUNCTION_URL = "https://us-central1-awayak-2db6c.cloudfunctions.net/validarCodigo";
 
   // Mapeo de tier -> video de Vimeo. Se completa cuando estén cargados
   // los eventos en Vimeo (uno por día, o el mismo con distinto punto de inicio).
   var VIMEO_EMBEDS = {
-    dia1: { id: "VIDEO_ID_DIA1", hash: "HASH_DIA1", label: "Día 1" },
-    dia2: { id: "VIDEO_ID_DIA2", hash: "HASH_DIA2", label: "Día 2" },
-    dia3: { id: "VIDEO_ID_DIA3", hash: "HASH_DIA3", label: "Día 3" },
-    full: { id: "VIDEO_ID_HOY",  hash: "HASH_HOY",  label: "Pase completo" }
+    dia1:   { id: "VIDEO_ID_DIA1",   hash: "HASH_DIA1",   label: "Día 1" },
+    dia2:   { id: "VIDEO_ID_DIA2",   hash: "HASH_DIA2",   label: "Día 2" },
+    dia3:   { id: "VIDEO_ID_DIA3",   hash: "HASH_DIA3",   label: "Día 3" },
+    full:   { id: "VIDEO_ID_HOY",    hash: "HASH_HOY",    label: "Pase completo" },
+    // TODO: definir qué ve un código master en el paso de Vimeo —
+    // probablemente el mismo criterio que "full" (el stream del día actual).
+    master: { id: "VIDEO_ID_HOY",    hash: "HASH_HOY",    label: "Acceso maestro" }
   };
 
   var DEVICE_TOKEN_KEY = "vjzotz_device_token";
