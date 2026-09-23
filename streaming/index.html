@@ -185,7 +185,7 @@ button.submit:disabled{ background:var(--surface2); color:var(--muted); cursor:d
         <iframe
           id="vimeo-frame"
           src=""
-          allow="autoplay; fullscreen; picture-in-picture"
+          allow="autoplay; fullscreen; picture-in-picture; encrypted-media; web-share"
           allowfullscreen
           referrerpolicy="strict-origin-when-cross-origin"
         ></iframe>
@@ -309,14 +309,15 @@ button.submit:disabled{ background:var(--surface2); color:var(--muted); cursor:d
 
   // Mapeo de tier -> video de Vimeo. Se completa cuando estén cargados
   // los eventos en Vimeo (uno por día, o el mismo con distinto punto de inicio).
+  // Un solo evento en vivo recurrente de Vimeo (mismo link los 3 días).
+  var VIMEO_TALLER_URL = "https://vimeo.com/event/6211698/embed/interaction";
+
   var VIMEO_EMBEDS = {
-    dia1:   { id: "554080354",       hash: "",             label: "Día 1" },
-    dia2:   { id: "VIDEO_ID_DIA2",   hash: "HASH_DIA2",   label: "Día 2" },
-    dia3:   { id: "VIDEO_ID_DIA3",   hash: "HASH_DIA3",   label: "Día 3" },
-    full:   { id: "VIDEO_ID_HOY",    hash: "HASH_HOY",    label: "Pase completo" },
-    // TODO: definir qué ve un código master en el paso de Vimeo —
-    // probablemente el mismo criterio que "full" (el stream del día actual).
-    master: { id: "554080354",       hash: "",             label: "Acceso maestro" }
+    dia1:   { url: VIMEO_TALLER_URL, label: "Día 1" },
+    dia2:   { url: VIMEO_TALLER_URL, label: "Día 2" },
+    dia3:   { url: VIMEO_TALLER_URL, label: "Día 3" },
+    full:   { url: VIMEO_TALLER_URL, label: "Pase completo" },
+    master: { url: VIMEO_TALLER_URL, label: "Acceso maestro" }
   };
 
   var DEVICE_TOKEN_KEY = "vjzotz_device_token";
@@ -374,8 +375,7 @@ button.submit:disabled{ background:var(--surface2); color:var(--muted); cursor:d
     }
     gateEl.style.display = "none";
     document.querySelector(".wrap").className = "wrap player-active";
-    var hashParam = video.hash ? ("?h=" + video.hash + "&") : "?";
-    vimeoFrame.src = "https://player.vimeo.com/video/" + video.id + hashParam + "autoplay=1&title=0&byline=0&portrait=0";
+    vimeoFrame.src = video.url;
     var tierLabel = t.tierLabels[tier] || video.label;
     tierBadge.innerHTML = t.tierPrefix + "<strong>" + tierLabel + "</strong>";
     playerWrap.className = "player-wrap show";
